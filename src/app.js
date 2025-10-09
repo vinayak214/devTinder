@@ -17,11 +17,13 @@ app.post("/login", async (req, res) => {
     if (!users || users.length === 0) {
       throw new Error("user not found");
     }
-    const isPasswordMatch = await bcrypt.compare(password, users.password);
+    const isPasswordMatch = await users.ValidatePassword(password);
     if (!isPasswordMatch) {
       throw new Error("password is incorrect");
     } else {
-      const token = await jwt.sign({ id: users._id }, "vinayak214");
+      const token = await jwt.sign({ id: users._id }, "vinayak214", {
+        expiresIn: "7h",
+      });
       res.cookie("token", token);
       res.send("user logged in successfully!!");
     }
