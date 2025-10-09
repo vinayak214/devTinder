@@ -3,8 +3,12 @@ const connectDB = require("./config/database"); // database connection
 const userModel = require("./models/user");
 const app = express(); // creating a new application(like new webserver)!!
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const cookieParser = require("cookie-parser");
+const userAuth = require("./middlewares/auth");
 
 app.use(express.json()); // to parse the incoming request body as JSON
+app.use(cookieParser());
 
 app.post("/login", async (req, res) => {
   const { emailId, password } = req.body;
@@ -13,12 +17,14 @@ app.post("/login", async (req, res) => {
     if (!users || users.length === 0) {
       throw new Error("user not found");
     }
-    console.log(users.password);
     const isPasswordMatch = await bcrypt.compare(password, users.password);
     if (!isPasswordMatch) {
       throw new Error("password is incorrect");
+    } else {
+      const token = await jwt.sign({ id: users._id }, "vinayak214");
+      res.cookie("token", token);
+      res.send("user logged in successfully!!");
     }
-    res.send("user logged in successfully!!");
   } catch (error) {
     res.status(500).send("error while logging in the user: " + error.message);
   }
@@ -61,6 +67,13 @@ app.get("/feed", async (req, res) => {
   }
 });
 
+app.get("/profile", userAuth, async (req, res) => {
+  try {
+    res.send(req.loggedUser);
+  } catch (error) {
+    res.send("Profile fetch failed" + error.message);
+  }
+});
 connectDB()
   .then(() => {
     console.log("MongoDB is connected!!");

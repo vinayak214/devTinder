@@ -12,6 +12,7 @@
    - Install bcrypt for hashing.
    - Install validator for. validating
    - Install cookie-parser for reading the cookies
+   - Install json webtoken for authentication
 
 2. **Run the server:**
    - For production:
