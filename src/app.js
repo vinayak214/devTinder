@@ -1,14 +1,73 @@
-// Create server using express. npm i express
-// const app = express(); // creating a new application(like new webserver)!!
-// create nodemon for fastrefresh the code!!
-// configured the package.json with the script updated!!
 const express = require("express");
-
+const connectDB = require("./config/database"); // database connection
+const userModel = require("./models/user");
 const app = express(); // creating a new application(like new webserver)!!
+const bcrypt = require("bcrypt");
 
-app.use("/hello", (req, res) => {
-  res.send("Hello from server again!!!");
+app.use(express.json()); // to parse the incoming request body as JSON
+
+app.post("/login", async (req, res) => {
+  const { emailId, password } = req.body;
+  try {
+    const users = await userModel.findOne({ emailId: emailId });
+    if (!users || users.length === 0) {
+      throw new Error("user not found");
+    }
+    console.log(users.password);
+    const isPasswordMatch = await bcrypt.compare(password, users.password);
+    if (!isPasswordMatch) {
+      throw new Error("password is incorrect");
+    }
+    res.send("user logged in successfully!!");
+  } catch (error) {
+    res.status(500).send("error while logging in the user: " + error.message);
+  }
 });
-app.listen(3000, () => {
-  console.log("server is success!!");
+
+app.post("/signup", async (req, res) => {
+  console.log(req.body);
+  const { firstName, lastName, emailId, password, age, gender } = req.body;
+  const hasPassword = await bcrypt.hash(password, 10); // encrypt the password
+  const updatedBody = { ...req.body, password: hasPassword };
+  console.log;
+  const users = new userModel(updatedBody); //create new instance of userModel
+  try {
+    await users.save(); // to save the data into database
+  } catch (error) {
+    res.status(500).send("some error occured while saving the data");
+  }
+  res.send("user added successfully!!");
 });
+
+app.get("/user", async (req, res) => {
+  const userEmail = req.body.emailId;
+  try {
+    const users = await userModel.find({ emailId: userEmail });
+    if (users.length === 0) {
+      res.status(404).send("user not found");
+    }
+    res.send(users);
+  } catch (error) {
+    res.send("failed to fetch the data");
+  }
+});
+
+app.get("/feed", async (req, res) => {
+  try {
+    const users = await userModel.find({});
+    res.send(users);
+  } catch (error) {
+    res.send("failed to fetch the data");
+  }
+});
+
+connectDB()
+  .then(() => {
+    console.log("MongoDB is connected!!");
+    app.listen(3000, () => {
+      console.log("server is successfully running!!");
+    });
+  })
+  .catch((err) => {
+    console.error("Failed to connect to MongoDB", err);
+  });
