@@ -6,21 +6,21 @@ const userAuth = async (req, res, next) => {
   try {
     const { token } = cookies;
     if (!token) {
-      throw new Error("Authentication token not found");
+      return res.status(401).send("Authentication token not found");
     }
     const decodedObj = await jwt.verify(token, "vinayak214");
-    console.log(decodedObj);
 
-    const { id } = decodedObj;
-    const loggedUser = await userModel.findById(id);
-    console.log(loggedUser);
+    const { _id } = decodedObj.id;
+
+    const loggedUser = await userModel.findById(_id);
     if (!loggedUser) {
-      throw new Error("User not found");
+      return res.status(401).send("User not found");
     }
     req.loggedUser = loggedUser;
     next();
   } catch (error) {
-    throw new Error("Authentication failed: " + error.message);
+    console.error("Authentication error:", error);
+    return res.status(401).send("Authentication failed: " + error.message);
   }
 };
 module.exports = userAuth;

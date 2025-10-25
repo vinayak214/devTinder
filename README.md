@@ -14,7 +14,19 @@
    - Install cookie-parser for reading the cookies
    - Install json webtoken for authentication
 
-2. **Run the server:**
+2. ## **Services:**
+
+   **ConnectionRequestRouter**
+
+   - POST /request/send/interested/:userID
+   - POST /request/send/ignored/:userID
+   - POST /request/send/accepted/:requestID
+   - POST /request/send/rejected/:requestID
+
+   - Feed Api
+     -/feed?page=1&limit=10 => 1 - 10. // Mongo db has skip(0) and limit(10) ==> it gives first 10 users
+
+3. **Run the server:**
    - For production:
      ```bash
      npm start
@@ -45,6 +57,11 @@ Visit [http://localhost:3000/hello](http://localhost:3000/hello) to see:
 ```
 Hello from server again!!!
 ```
+
+## Note
+
+- req.params is when we pass values as :value
+- req.query is when we use ?page=5
 
 ## Author
 
